@@ -14,8 +14,9 @@ The objective is to demonstrate how transformer attention operations can be mapp
 
 # Attention Equation
 
-Attention(Q,K,V) = softmax(QKᵀ / √dk)
-
+```text
+Attention(Q,K,V) = softmax(QKᵀ / √dk)V
+```
 
 ---
 
@@ -113,6 +114,10 @@ WRITE_OUTPUT
  ↓
 DONE
 
+```
+# Project Structure
+
+```text
 simple-attention-accelerator/
 │
 ├── src/
@@ -204,4 +209,4 @@ Both implementations produce identical outputs for the provided test case.
 
 ## Author
 
-Md Wajih Tousif Raafi
+**Md Wajih Tousif Raafi**
