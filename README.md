@@ -76,8 +76,10 @@ Scaling is implemented using a simple divide-by-2 operation.
 
 Instead of implementing expensive exponential functions, a simple comparator-based approximation is used.
 
+
 Example:
 
+```text
 If Score1 > Score2
 
 Attention = [0.75, 0.25]
@@ -85,9 +87,8 @@ Attention = [0.75, 0.25]
 Else
 
 Attention = [0.25, 0.75]
+```
 
-
----
 
 # FSM Control Flow
 
