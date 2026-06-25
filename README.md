@@ -1,83 +1,96 @@
-# simple-attention-accelerator
-Hardware implementation of a simplified scaled dot-product attention mechanism using Verilog/SystemVerilog.
-### Simple Attention Accelerator
-**Overview**
+# Simple Attention Accelerator
 
-This project implements a simplified scaled dot-product attention mechanism in Verilog/SystemVerilog. The design computes Query (Q), Key (K), and Value (V) matrices from input tokens and learned weight matrices, calculates attention scores, applies scaling and a softmax approximation, and generates the final attention output.
+Hardware implementation of a simplified scaled dot-product attention mechanism using **Verilog/SystemVerilog**.
 
-The primary goal of this project is to demonstrate how transformer attention computations can be mapped onto a resource-efficient hardware architecture.
+---
 
-**Attention Equation**
+# Overview
 
-Attention(Q,K,V) = softmax(QKᵀ / √dk)V
+This project implements a simplified scaled dot-product attention mechanism in Verilog/SystemVerilog. The design computes **Query (Q)**, **Key (K)**, and **Value (V)** matrices from input tokens and learned weight matrices, calculates attention scores, applies scaling and a hardware-friendly softmax approximation, and generates the final attention output.
 
-**Proposed Architecture**
+The objective is to demonstrate how transformer attention operations can be mapped onto an efficient hardware architecture while balancing hardware complexity, latency, and resource utilization.
 
-Unlike a fully parallel implementation, this design uses a shared Multiply-Accumulate (MAC) unit controlled by a Finite State Machine (FSM).
+---
 
-Input Files
-     ↓
-Input Memory
-     ↓
-Shared MAC Engine
-     ↓
-Q Computation
-     ↓
-K Computation
-     ↓
-V Computation
-     ↓
-Score Computation (QKᵀ)
-     ↓
-Scaling Unit
-     ↓
-Softmax Approximation Unit
-     ↓
-Output Computation
-     ↓
-Output File
+# Attention Equation
 
-The same MAC engine is reused throughout the entire attention pipeline, reducing hardware resource utilization while increasing execution latency.
+Attention(Q,K,V) = softmax(QKᵀ / √dk)
 
-### Design Decisions
-**Shared MAC Architecture**
 
-A single MAC unit is reused for:
+---
 
-- Q = XWQ
-- K = XWK
-- V = XWV
-- QKᵀ computation
-- Output computation
+# Architecture
 
-### Fixed-Point Arithmetic
+Unlike a fully parallel implementation, this design uses a **shared Multiply-Accumulate (MAC) engine** controlled by a **Finite State Machine (FSM)**.
 
-The design uses 16-bit signed fixed-point representation (Q8.8 format).
+![Architecture](docs/Architecture.png)
 
-### Scaling Strategy
+The same MAC engine is reused throughout the attention pipeline, significantly reducing hardware resource utilization while increasing execution latency.
 
-The design uses:
+---
+
+# Design Decisions
+
+## Shared MAC Architecture
+
+A single MAC unit is reused to compute:
+
+- Query (Q)
+- Key (K)
+- Value (V)
+- Attention Scores (QKᵀ)
+- Final Output
+
+### Advantages
+
+- Lower hardware area
+- Reduced resource utilization
+- Simpler hardware implementation
+
+### Disadvantages
+
+- Higher execution latency
+- Lower throughput than fully parallel architectures
+
+---
+
+## Number Representation
+
+The design uses **16-bit signed fixed-point arithmetic (Q8.8 format)** for efficient hardware implementation while maintaining acceptable numerical precision.
+
+---
+
+## Scaling Strategy
+
+For this implementation:
 
 - dk = 4
 - √dk = 2
 
-Scaling is implemented using a simple right-shift operation.
+Scaling is implemented using a simple divide-by-2 operation.
 
-### Softmax Approximation
+---
 
-To avoid expensive exponential computations, a simplified comparator-based approximation is used.
+## Softmax Approximation
 
-**Example:**
+Instead of implementing expensive exponential functions, a simple comparator-based approximation is used.
 
-If score1 > score2:
+Example:
 
-Attention Weights = [0.75, 0.25]
+If Score1 > Score2
 
-Else:
+Attention = [0.75, 0.25]
 
-Attention Weights = [0.25, 0.75]
+Else
 
-### FSM Control Flow
+Attention = [0.25, 0.75]
+
+
+---
+
+# FSM Control Flow
+
+```text
 IDLE
  ↓
 LOAD_DATA
@@ -100,22 +113,32 @@ WRITE_OUTPUT
  ↓
 DONE
 
-The FSM orchestrates all stages of computation using the shared MAC engine.
-
-**Directory Structure**
-
 simple-attention-accelerator/
 │
 ├── src/
+│   └── attention_top.v
+│
 ├── tb/
+│   └── tb_attention.v
+│
 ├── data/
+│   ├── x.mem
+│   ├── wq.mem
+│   ├── wk.mem
+│   └── wv.mem
+│
 ├── scripts/
+│   └── verify.py
+│
 ├── docs/
+│   ├── architecture.png
+│   └── design_decisions.md
+│
 └── README.md
+```
+## Input Files
 
-**Input Files**
-
-Input matrices are loaded from text files using Verilog file I/O mechanisms.
+The design reads all input matrices from text files using Verilog file I/O.
 
 Files:
 
@@ -124,30 +147,61 @@ Files:
 - wk.mem
 - wv.mem
 
-### Simulation Environment
+# Simulation Environment
 
-Tools Used:
+## Tools
 
 - Icarus Verilog
 - GTKWave
-- Python Verification Script
+- Python 3
+- NumPy
 
-**Compile:**
+## Compile
 
+```bash
 iverilog -o sim tb/tb_attention.v src/attention_top.v
+```
 
-**Run:**
+## Run
 
+```bash
 vvp sim
+```
 
-**Open waveform:**
+## Open Waveform
 
+```bash
 gtkwave attention.vcd
+```
 
-**Verification**
+---
 
-A Python reference implementation is provided to verify the correctness of the hardware-generated outputs.
+# Verification
 
-**The verification flow compares:**
+A Python reference implementation (`scripts/verify.py`) is provided to validate the hardware implementation.
 
-Hardware Output ↔ Python Reference Output
+The verification compares:
+
+```text
+Python Reference Output
+          │
+          ▼
+Verilog Hardware Output
+```
+
+Both implementations produce identical outputs for the provided test case.
+
+---
+
+# Trade-Off Analysis
+
+| Design Choice | Benefit | Cost |
+|---|---|---|
+| Shared MAC Engine | Lower hardware area | Higher latency |
+| Fixed-Point Arithmetic | Lower hardware complexity | Reduced numerical precision |
+| Sequential Execution | Simpler implementation | Lower throughput |
+| Approximate Softmax | Lower computational cost | Less accurate than exact softmax |
+
+## Author
+
+Md Wajih Tousif Raafi
