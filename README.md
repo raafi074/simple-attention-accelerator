@@ -57,7 +57,7 @@ A single MAC unit is reused to compute:
 
 ## Number Representation
 
-The design uses **16-bit signed fixed-point arithmetic (Q8.8 format)** for efficient hardware implementation while maintaining acceptable numerical precision.
+The design uses integer arithmetic for simplicity and ease of verification.
 
 ---
 
